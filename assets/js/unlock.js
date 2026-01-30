@@ -1,14 +1,9 @@
 /*
-  Cryptex v2.1 — Unlock
-  (formerly FileSeal v1)
-
-  Supported formats:
-  - FileSeal v1
-  - Cryptex v2.1
+  ByteSeal v1.0 — Unlock
 
   Container header:
-  [ 8  bytes ] magic      "CRYPTEX\0"  (Cryptex) | "FILESEAL" (legacy)
-  [ 1  byte  ] version    0x02          (Cryptex v2.1 protocol)
+  [ 8  bytes ] magic
+  [ 1  byte  ] version
   [ 16 bytes ] salt
   [ 12 bytes ] iv
   [ n bytes  ] AES-GCM encrypted payload
@@ -19,6 +14,12 @@
   [ m bytes ] file bytes
 */
 
+class CryptoAuthError extends Error {
+  constructor() {
+    super("Incorrect password or corrupted file");
+    this.name = "CryptoAuthError";
+  }
+}
 
 
 import { FORMATS } from "./version.js";
@@ -59,11 +60,26 @@ function setStatus(msg, isError = false) {
   status.style.color = isError ? "#a33" : "#222";
 }
 
+/*
+  IMPORTANT:
+  Binary format detection MUST be byte-wise.
+  Do NOT decode magic as text — mobile browsers will break it.
+*/
 function detectFormat(buf) {
-  const magic = new TextDecoder().decode(buf.slice(0, MAGIC_LEN));
   for (const fmt of Object.values(FORMATS)) {
-    if (magic === fmt.magic) return fmt;
+    const magicBytes = new TextEncoder().encode(fmt.magic);
+
+    let match = true;
+    for (let i = 0; i < MAGIC_LEN; i++) {
+      if (buf[i] !== magicBytes[i]) {
+        match = false;
+        break;
+      }
+    }
+
+    if (match) return fmt;
   }
+
   throw new Error("Unknown container format");
 }
 
@@ -107,15 +123,14 @@ form.addEventListener("submit", async (e) => {
   unlockBtn.disabled = true;
 
   try {
-   setStatus("Reading container…");
-   const buf = new Uint8Array(await file.arrayBuffer());
-   if (buf.length < HEADER_LEN) throw new Error("Invalid container");
+    setStatus("Reading container…");
+    const buf = new Uint8Array(await file.arrayBuffer());
+    if (buf.length < HEADER_LEN) throw new Error("Invalid container");
 
     setStatus("Detecting format…");
     const format = detectFormat(buf);
 
     const version = buf[MAGIC_LEN];
-
     if (version !== format.version)
       throw new Error(`Unsupported ${format.label}`);
 
@@ -130,22 +145,35 @@ form.addEventListener("submit", async (e) => {
     setStatus("Deriving key…");
     const key = await deriveKey(password, salt.buffer);
 
-
     setStatus("Decrypting…");
-    const plaintext = new Uint8Array(
-   await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct)
-   );
+    let plaintext;
+
+try {
+  plaintext = new Uint8Array(
+    await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct)
+  );
+} catch {
+  throw new CryptoAuthError();
+}
 
 
-    const view = new DataView(plaintext.buffer);
-    const metaLen = view.getUint32(0, false);
+    if (plaintext.length < 4)
+  throw new Error("Decrypted payload is invalid");
 
-    const metaJson = new TextDecoder().decode(
+const view = new DataView(plaintext.buffer);
+const metaLen = view.getUint32(0, false);
+
+if (metaLen <= 0 || metaLen > plaintext.length - 4)
+  throw new Error("Decrypted metadata is corrupted");
+
+    
+    const metaJson = new TextDecoder("utf-8", { fatal: true }).decode(
       plaintext.slice(4, 4 + metaLen)
     );
     const meta = JSON.parse(metaJson);
 
     const fileBytes = plaintext.slice(4 + metaLen);
+
     setStatus("Restoring file…");
     const blob = new Blob([fileBytes], { type: meta.type });
 
@@ -156,10 +184,17 @@ form.addEventListener("submit", async (e) => {
     URL.revokeObjectURL(a.href);
 
     setStatus(`File restored (${format.label})`);
+    
   } catch (err) {
-    setStatus(err.message || String(err), true);
-  } finally {
+  if (err instanceof CryptoAuthError) {
+    setStatus("Wrong password or file was modified", true);
+  } else {
+    setStatus(err.message || "Decryption failed", true);
+  }
+}
+
+  
+  finally {
     unlockBtn.disabled = false;
   }
 });
-

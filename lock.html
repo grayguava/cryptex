@@ -1,47 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Cryptex - Encrypt</title>
-
+  <meta charset="UTF-8">
+  <title>Encrypt - ByteSeal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/assets/css/styles.css"/>
-
 </head>
 
 <body>
 
-<form class="form" id="form">
-  <div class="title">
-    Cryptex<br>
-    <span>Encrypt a file locally</span>
-  </div>
+<div class="card">
 
- <label class="file-wrap">
-  <span class="file-btn">Choose file</span>
+<div class="title">ByteSeal</div>
+<div class="subtitle">Encrypt a file locally</div>
+
+
+  <div class="divider"></div>
+
+  <form class="system" id="form">
+
+<div class="file-wrap">
+  <label for="file" class="file-btn">Choose file</label>
   <span class="file-name" id="fileName">No file chosen</span>
   <input type="file" id="file" hidden>
-</label>
+</div>
 
 
-  <input
-    class="input"
-    type="password"
-    id="password"
-    placeholder="Set an Encryption password"
-    required
-  >
+    <input
+      class="input"
+      type="password"
+      id="password"
+      placeholder="Set an Encryption password"
+      required
+    >
 
-  <button class="button-confirm" id="lockBtn" type="submit">
-    Encrypt & Download →
-  </button>
-  
-    <div id="status" style="font-size:14px; min-height:1em;"></div>
+    <button class="button-confirm" id="lockBtn" type="submit">
+      Encrypt & Download →
+    </button>
 
-    
-</form>
+    <div id="status"></div>
 
-<!-- fs-lock.js will be attached here -->
+  </form>
+
+</div>
+
 <script type="module" src="/assets/js/lock.js"></script>
-
 </body>
 </html>

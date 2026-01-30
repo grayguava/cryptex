@@ -6,8 +6,8 @@
   Legacy formats are NOT generated here.
 
   Container header (plaintext):
-  [ 8  bytes ] magic      "CRYPTEX\0"
-  [ 1  byte  ] version    0x02
+  [ 8  bytes ] magic      "BYTESEAL"
+  [ 1  byte  ] version    0x01
   [ 16 bytes ] salt
   [ 12 bytes ] iv
 
@@ -147,11 +147,11 @@ form.addEventListener("submit", async (e) => {
     const blob = new Blob([out], { type: "application/octet-stream" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = crypto.randomUUID().replace(/-/g, "").slice(0, 12) + ".ctx";
+    a.download = crypto.randomUUID().replace(/-/g, "").slice(0, 12) + ".byts";
     a.click();
     URL.revokeObjectURL(a.href);
 
-    setStatus("File encrypted (Cryptex v2.1)");
+    setStatus("File encrypted (ByteSeal v1.0)");
   } catch (err) {
     setStatus(err.message || String(err), true);
   } finally {

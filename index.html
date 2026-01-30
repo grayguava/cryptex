@@ -1,27 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Cryptex</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>ByteSeal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="/assets/css/styles.css"/>
+  <!-- FIX: relative path -->
+  <link rel="stylesheet" href="/assets/css/styles.css"/>
 </head>
 
 <body>
 
-<div class="card">
-  
-  <div class="title">Cryptex</div>
-  
-  <p>
-    Offline, browser-based file encryption using .ctx containers locally.<br>
-    No servers. No accounts. No uploads.
-  </p>
+  <div class="card">
 
-  <a href="/lock">Encrypt a File →</a>
-  <a href="/unlock">Decrypt a File →</a>
+    <div class="branding">
+      <div class="title">ByteSeal</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="system">
+
+      <p>
+        Offline, browser-based file encryption using .byts containers locally.<br>
+        No servers. No accounts. No uploads.
+      </p>
+
+<div class="index-actions">
+  <a href="lock" class="button-confirm index-btn">Encrypt a File →</a>
+  <a href="unlock" class="button-confirm index-btn">Decrypt a File →</a>
 </div>
+
+
+      
+    </div>
+
+  </div>
 
 </body>
 </html>
